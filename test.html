@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html lang="en"> 
+<head> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+  <title>Swears test</title> 
+</head> 
+<body>
+    
+  <script type="text/javascript" charset="utf-8"> 
+
+    // strings = [
+    //   "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //   "\n\n\n\n\n\n\n\n\n\n\n\n\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    // ];
+    
+    // function SWEARS() {};
+    // SWEARS.prototype = {
+      
+    // TODO: encapsulate this in a thingie
+    
+    SWEARS = {
+      setIntervalId: 0,
+      target: false,
+      width: false,
+      height: false,
+      composite: false,
+      layers: [],
+      
+      // use a renderer to display stuff
+      // TODO: allow renderer choice
+      render: function() {
+        SWEARS.renderers.pre();
+      },
+      
+      // start the sequence
+      play: function(framerate, target, width, height, callback) {
+        SWEARS.target = target;
+        SWEARS.width = width;
+        SWEARS.height = height;
+        
+        if(!parseInt(framerate)) {return false;}
+        var micros = parseInt(1000 / parseInt(framerate));
+        micros = micros < 10 ? 10 : micros;
+        SWEARS.setIntervalId = setInterval(function() {
+          callback();
+          SWEARS.render();
+        }, micros);
+      },
+      
+      // freeze time
+      pause: function() {
+        clearInterval(SWEARS.setIntervalId);
+        delete(SWEARS.setIntervalId);
+      },
+      
+      // TODO: move these outside and make it extensible
+      renderers: {
+        pre: function() {
+          // pre-initialize composite array
+          var composite = [];
+          for(var y = 0; y < SWEARS.height; y++) {
+            composite[y] = [];
+            for(var x = 0; x < SWEARS.width; x++) {
+              composite[y][x] = false;
+            }
+          }
+          
+          // composite layers
+          for(var i = 0; i < SWEARS.layers.length; i++) {
+            // TODO: add z-indexing
+            for(var y = SWEARS.layers[i].data.length - 1; y >= 0; y--) {
+              for(var x = SWEARS.layers[i].data[y].length - 1; x >= 0; x--) {
+                var true_y = y + SWEARS.layers[i].y > SWEARS.height ? SWEARS.height : y + SWEARS.layers[i].y;
+                var true_x = x + SWEARS.layers[i].x > SWEARS.width ? SWEARS.width : x + SWEARS.layers[i].x;
+                composite[true_y][true_x] = SWEARS.layers[i].data[y][x]
+              }
+            }
+          }
+          
+          // composite -> string
+          var string = '';
+          for(var y = 0; y < SWEARS.height; y++) {
+            for(var x = 0; x < SWEARS.width; x++) {
+              string += composite[y][x] !== false ? composite[y][x] : ' ';
+            }
+            string += "\n";
+          }
+          
+          // render in target
+          SWEARS.target.innerHTML = string;
+        }
+      } 
+      
+    };
+    
+    
+    // callback thing
+    call_me = function() {
+      // check the current ball position (4 = ball width - 1)
+      // TODO: generalize layer collision and edge detection
+      if(ball.y <= 0) {ball.vector[0] = -1 * ball.vector[0];}
+      if(ball.y >= SWEARS.height - 4) {ball.vector[0] = -1 * ball.vector[0];}
+      if(ball.x <= 0) {ball.vector[1] = -1 * ball.vector[1];}
+      if(ball.x >= SWEARS.width - 4) {ball.vector[1] = -1 * ball.vector[1];}
+      
+      // change ball position
+      ball.y += ball.vector[0];
+      ball.x += ball.vector[1];
+      
+      // twiddle layer data
+      // TODO: do this through SWEARS instead of directly
+      SWEARS.layers[0].y = parseInt(ball.y);
+      SWEARS.layers[0].x = parseInt(ball.x);
+    }
+    
+    // hook for anchor
+    do_stuff = function() {
+      if(!SWEARS.layers[0]) {
+        // do setup
+        // TODO: attach to layer through SWEARS instead of directly
+        SWEARS.layers[0] = {};
+        ball = {vector: [0,1], string: " X \nXXX\n X ", y: 5, x: 3};
+        SWEARS.layers[0].data = [[" ", "X", " "], ["X", "X", "X"], [" ", "X", " "]]; // TODO: string -> matrix translator
+      }
+      
+      SWEARS.play(20, document.getElementById('target'), 30, 15, call_me);
+    }
+    
+    // var swearer = new SWEARS();
+    
+    
+    
+    // keyboard attachments
+    document.onkeypress = function(e) {
+      e = e || window.event;
+      var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
+      
+      if (charCode == 118) {
+        ball.vector[0] = Math.random() * 4 - 2;
+        ball.vector[1] = Math.random() * 4 - 2;
+      }
+    };
+    
+    
+  </script> 
+  
+  
+  <a href="" onclick="do_stuff(); return false;">Play</a>
+  <a href="" onclick="SWEARS.pause(); return false;">Pause</a>
+  
+  <div><pre id="target"></pre></div> 
+  
+  
+</body> 
+</html>
