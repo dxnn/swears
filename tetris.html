@@ -2,14 +2,11 @@
 <html lang="en"> 
 <head> 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
-  <title>Swears test</title> 
+  <title>Tetris test for swears</title> 
 </head> 
 <body>
     
   <script type="text/javascript" charset="utf-8"> 
-
-    // function SWEARS() {};
-    // SWEARS.prototype = {
       
     // TODO: encapsulate this in a thingie
     
@@ -19,21 +16,52 @@
       width: false,
       height: false,
       composite: false,
+      layer_count: 0,
       layer_buffer: {},
       layers: [],
       
+      layer: function() {
+        this.x = 0;
+        this.y = 0;
+        this.width = 1;
+        this.height = 1;
+        this.data = Array(Array(false));
+        this.key = SWEARS.layers.length;
+      },
+      
+      
       add_layer: function() {
-        layer = function() {
-          this.x = 0;
-          this.y = 0;
-          this.data = Array(Array(false));
-          this.key = SWEARS.layers.length;
-        }
-        
-        var new_layer = new layer();
+        var new_layer = new SWEARS.layer();
         SWEARS.layers.push(new_layer);
-        SWEARS.layer_buffer[SWEARS.layers.length - 1] = SWEARS.layers.length - 1; // THINK: this might not work if we've deleted layers
+        SWEARS.layer_buffer[SWEARS.layer_count] = SWEARS.layers.length - 1;
+        SWEARS.layer_count++;
         return new_layer;
+      },
+      
+      layer_set_data: function(layer, data) {
+        if(typeof data == 'string') {
+          data = SWEARS.convert_string_to_matrix(data);
+        }
+        layer.data = data;
+        
+        var width = 1;
+        for(var i = layer.data.length - 1; i >= 0; i--) {
+          width = layer.data[i].length > width ? layer.data[i].length : width;
+        }
+        layer.width = width;
+        layer.height = layer.data.length;
+      },
+      
+      convert_string_to_matrix: function(string, alpha) {
+        var rows = string.split(/\n/);
+        var matrix = [];
+        for(var y=0; y < rows.length; y++) {
+          matrix[y] = []
+          for(var x=0; x < rows[y].length; x++) {
+            matrix[y][x] = rows[y][x] == alpha ? false : rows[y][x];
+          }
+        }
+        return matrix;
       },
       
       layer_move_up: function(layer) {
@@ -54,6 +82,19 @@
         SWEARS.layers[index - 1] = layer;
         SWEARS.layer_buffer[layer.key]--;
         SWEARS.layer_buffer[prev.key]++;
+      },
+      
+      layer_destroy: function(layer) {
+        var index = SWEARS.layer_buffer[layer.key];
+        SWEARS.layers.splice(index, 1);
+        delete(SWEARS.layer_buffer[layer.key]);
+        delete(layer);
+      },
+      
+      layer_destroy_all: function(layer) {
+        SWEARS.layer_buffer = {};
+        SWEARS.layers = [];
+        SWEARS.layer_count = 0;
       },
       
       // use a renderer to display stuff
@@ -103,7 +144,7 @@
                 if(SWEARS.layers[i].data[y][x] !== false) {
                   var true_y = y + SWEARS.layers[i].y;
                   var true_x = x + SWEARS.layers[i].x;
-                  if(true_x < 0 || true_x > SWEARS.width || true_y < 0 || true_y > SWEARS.height) {continue;}
+                  if(true_x < 0 || true_x >= SWEARS.width || true_y < 0 || true_y >= SWEARS.height) {continue;}
                   composite[true_y][true_x] = SWEARS.layers[i].data[y][x];
                 }
               }
@@ -134,57 +175,61 @@
     
     // callback thing
     call_me = function() {
-      // check the current ball position (4 = ball width - 1)
-      // TODO: generalize layer collision and edge detection
-      if(ball.y <= 0) {ball.vector[0] = Math.abs(ball.vector[0]);}
-      if(ball.y >= SWEARS.height - 4) {ball.vector[0] = -1 * Math.abs(ball.vector[0]);}
-      if(ball.x <= 0) {ball.vector[1] = Math.abs(ball.vector[1]);}
-      if(ball.x >= SWEARS.width - 4) {ball.vector[1] = -1 * Math.abs(ball.vector[1]);}
+      if(!current) {
+        current = {vector: [1,0], data: shapes['box'], x: Math.floor(Math.random() * 4), y: 0};
+        current.layer = SWEARS.add_layer();
+        SWEARS.layer_set_data(current.layer, shapes[shape_ref[Math.floor(Math.random() * 5)]]);
       
-      // change ball position
-      ball.y += ball.vector[0];
-      ball.x += ball.vector[1];
+        // twiddle counter
+        if((2 * counter) >= SWEARS.height) {
+          SWEARS.pause(); 
+          return false;
+        }
+        counter++;
+      }
+      
+      // TODO: store layer width and height
+      
+      // check the current shape position
+      if(current.y >= SWEARS.height - 3 - (2 * counter)) {
+        current = false;
+        return false;
+      }
+      
+      if(current.x <= 0) {current.vector[1] = Math.abs(current.vector[1]);}
+      if(current.x >= SWEARS.width - 4) {current.vector[1] = -1 * Math.abs(current.vector[1]);}
+      
+      // change current position
+      current.y += current.vector[0];
+      current.x += current.vector[1];
       
       // twiddle layer data
-      // TODO: do this through SWEARS instead of directly
-      ball.layer.y = parseInt(ball.y);
-      ball.layer.x = parseInt(ball.x);
+      current.layer.y = parseInt(current.y);
+      current.layer.x = parseInt(current.x);
       
-      
-      
-      // check the current box position (4 = box width - 1)
-      // TODO: generalize layer collision and edge detection
-      if(box.y <= 0) {box.vector[0] = Math.abs(box.vector[0]);}
-      if(box.y >= SWEARS.height - 4) {box.vector[0] = -1 * Math.abs(box.vector[0]);}
-      if(box.x <= 0) {box.vector[1] = Math.abs(box.vector[1]);}
-      if(box.x >= SWEARS.width - 4) {box.vector[1] = -1 * Math.abs(box.vector[1]);}
-      
-      // change box position
-      box.y += box.vector[0];
-      box.x += box.vector[1];
-      
-      // twiddle layer data
-      // TODO: do this through SWEARS instead of directly
-      box.layer.y = parseInt(box.y);
-      box.layer.x = parseInt(box.x);
+      // zero horizontal vector
+      current.vector[1] = 0;
     }
     
     // hook for anchor
     do_stuff = function() {
       // do setup
-      if(typeof(ball) == 'undefined') {
-        box = {vector: [1,0], string: " X \nXXX\n X ", y: 0, x: 5};
-        box.layer = SWEARS.add_layer();
-        box.layer.data = [["O", "O", "O"], ["O", "O", "O"], ["O", "O", "O"]]; // TODO: string -> matrix translator
-
-        ball = {vector: [0,1], string: " X \nXXX\n X ", y: 5, x: 0};
-        ball.layer = SWEARS.add_layer();
-        ball.layer.data = [[false, "X", false], ["X", "X", "X"], [false, "X", false]]; // TODO: string -> matrix translator
+      counter = 0;
+      if(typeof(shapes) == 'undefined') {
+        shapes = {
+          tshape: SWEARS.convert_string_to_matrix("TTT\n-T-", '-'), //[["T", "T", "T"], [false, "T", false]],
+          box: "BB\nBB",
+          line: "SSSS",
+          rightl: [["R", "R", "R"], [false, false, "R"]],
+          leftl: [["L", "L", "L"], ["L", false, false]]
+        }
+        
+        shape_ref = ['tshape', 'box', 'line', 'rightl', 'leftl'];
+        current = false;
       }
       
-      SWEARS.play(5, document.getElementById('target'), 10, 10, call_me);
+      SWEARS.play(100, document.getElementById('target'), 12, 40, call_me);
     }
-    
     
     
     // keyboard attachments
@@ -192,13 +237,15 @@
       e = e || window.event;
       var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
       
-      if (charCode == 118) {
-        ball.vector[0] = Math.random() * 4 - 2;
-        ball.vector[1] = Math.random() * 4 - 2;
-
-        box.vector[0] = Math.random() * 4 - 2;
-        box.vector[1] = Math.random() * 4 - 2;
+      if (charCode == 97) { // a
+        // rotate ccw
       }
+      if (charCode == 100) { // d
+        // rotate cw
+      }
+      if (charCode == 115) { // s
+        // drop
+      }      
     };
     
     
@@ -207,8 +254,6 @@
   
   <a href="" onclick="do_stuff(); return false;">Play</a>
   <a href="" onclick="SWEARS.pause(); return false;">Pause</a>
-  <a href="" onclick="SWEARS.layer_move_up(box.layer); return false;">Move box up</a>
-  <a href="" onclick="SWEARS.layer_move_down(box.layer); return false;">Move box down</a>
   
   <div><pre id="target"></pre></div> 
   
