@@ -3,7 +3,7 @@
 <head> 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
   <title>swearsly test</title> 
-  <script src="swears.js"></script> 
+  <script src="../js/swears.js"></script> 
 </head> 
 <body>
     
@@ -49,17 +49,19 @@
     // hook for anchor
     do_stuff = function() {
       // do setup
-      if(typeof(ball) == 'undefined') {
+      if(typeof ball == 'undefined') {
+        swearsly = new Swears(10, 10, {target: document.getElementById('target')});
+        
         box = {vector: [1,0], string: " X \nXXX\n X ", y: 0, x: 5};
         box.layer = swearsly.add_layer();
-        box.layer.data = [["O", "O", "O"], ["O", "O", "O"], ["O", "O", "O"]]; // TODO: string -> matrix translator
+        box.layer.set_data([["O", "O", "O"], ["O", "O", "O"], ["O", "O", "O"]]);
 
         ball = {vector: [0,1], string: " X \nXXX\n X ", y: 5, x: 0};
         ball.layer = swearsly.add_layer();
-        ball.layer.data = [[false, "X", false], ["X", "X", "X"], [false, "X", false]]; // TODO: string -> matrix translator
+        ball.layer.set_data([[false, "X", false], ["X", "X", "X"], [false, "X", false]]);
       }
       
-      swearsly.play(20, document.getElementById('target'), 10, 10, call_me);
+      swearsly.play(20, call_me);
     }
     
     
@@ -78,14 +80,13 @@
       }
     };
     
-    swearsly = new Swears();
   </script> 
   
   
   <a href="" onclick="do_stuff(); return false;">Play</a>
   <a href="" onclick="swearsly.pause(); return false;">Pause</a>
-  <a href="" onclick="swearsly.layer_move_up(box.layer); return false;">Move box up</a>
-  <a href="" onclick="swearsly.layer_move_down(box.layer); return false;">Move box down</a>
+  <a href="" onclick="box.layer.move_up(); return false;">Move box up</a>
+  <a href="" onclick="box.layer.move_down(); return false;">Move box down</a>
   
   <div><pre id="target"></pre></div> 
   

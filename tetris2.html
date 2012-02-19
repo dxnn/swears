@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html lang="en"> 
+<head> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+  <title>Tetris test for swears</title> 
+  <script src="../js/swears.js"></script> 
+</head> 
+<body>
+    
+  <script type="text/javascript" charset="utf-8"> 
+    
+    // callback thing
+    call_me = function() {
+      if(!current) {
+        current = {vector: [1,0], data: shapes['box'], x: Math.floor(Math.random() * 4), y: 0};
+        current.layer = swears.add_layer();
+        current.layer.set_data(shapes[shape_ref[Math.floor(Math.random() * 5)]]);
+      
+        // twiddle counter
+        if((2 * counter) >= swears.height) {
+          swears.pause(); 
+          return false;
+        }
+        counter++;
+      }
+      
+      // TODO: store layer width and height
+      
+      // check the current shape position
+      if(current.y >= swears.height - 3 - (2 * counter)) {
+        current = false;
+        return false;
+      }
+      
+      if(current.x <= 0) {current.vector[1] = Math.abs(current.vector[1]);}
+      if(current.x >= swears.width - 4) {current.vector[1] = -1 * Math.abs(current.vector[1]);}
+      
+      // change current position
+      current.y += current.vector[0];
+      current.x += current.vector[1];
+      
+      // twiddle layer data
+      current.layer.y = parseInt(current.y);
+      current.layer.x = parseInt(current.x);
+      
+      // zero horizontal vector
+      current.vector[1] = 0;
+    }
+    
+    // hook for anchor
+    do_stuff = function() {
+      if(typeof swears == "undefined") {
+        swears = new Swears(12, 40, {target: document.getElementById('target')});
+      }
+      
+      // do setup
+      counter = 0;
+      if(typeof(shapes) == 'undefined') {
+        shapes = {
+          tshape: swears.make_matrix("TTT\n-T-", '-'), //[["T", "T", "T"], [false, "T", false]],
+          box: "BB\nBB",
+          line: "SSSS",
+          rightl: [["R", "R", "R"], [false, false, "R"]],
+          leftl: [["L", "L", "L"], ["L", false, false]]
+        }
+        
+        shape_ref = ['tshape', 'box', 'line', 'rightl', 'leftl'];
+        current = false;
+      }
+      
+      swears.play(100, call_me);
+    }
+    
+    
+    // keyboard attachments
+    document.onkeypress = function(e) {
+      e = e || window.event;
+      var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
+      
+      if (charCode == 97) { // a
+        // rotate ccw
+      }
+      if (charCode == 100) { // d
+        // rotate cw
+      }
+      if (charCode == 115) { // s
+        // drop
+      }      
+    };
+    
+    
+  </script> 
+  
+  
+  <a href="" onclick="do_stuff(); return false;">Play</a>
+  <a href="" onclick="swears.pause(); return false;">Pause</a>
+  
+  <div><pre id="target"></pre></div> 
+  
+  
+</body> 
+</html>
