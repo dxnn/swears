@@ -2,151 +2,28 @@
 <html lang="en"> 
 <head> 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
-  <title>Swears test</title> 
+  <title>swearsly test</title> 
+  <script src="swears.js"></script> 
 </head> 
 <body>
     
   <script type="text/javascript" charset="utf-8"> 
-
-    // function SWEARS() {};
-    // SWEARS.prototype = {
-      
-    // TODO: encapsulate this in a thingie
-    
-    SWEARS = {
-      setIntervalId: 0,
-      target: false,
-      width: false,
-      height: false,
-      composite: false,
-      layer_buffer: {},
-      layers: [],
-      
-      add_layer: function() {
-        layer = function() {
-          this.x = 0;
-          this.y = 0;
-          this.data = Array(Array(false));
-          this.key = SWEARS.layers.length;
-        }
-        
-        var new_layer = new layer();
-        SWEARS.layers.push(new_layer);
-        SWEARS.layer_buffer[SWEARS.layers.length - 1] = SWEARS.layers.length - 1; // THINK: this might not work if we've deleted layers
-        return new_layer;
-      },
-      
-      layer_move_up: function(layer) {
-        var index = SWEARS.layer_buffer[layer.key];
-        if(index == SWEARS.layers.length - 1) {return false;}
-        var next = SWEARS.layers[index + 1];
-        SWEARS.layers[index] = next;
-        SWEARS.layers[index + 1] = layer;
-        SWEARS.layer_buffer[layer.key]++;
-        SWEARS.layer_buffer[next.key]--;
-      },
-      
-      layer_move_down: function(layer) {
-        var index = SWEARS.layer_buffer[layer.key];
-        if(index == 0) {return false;}
-        var prev = SWEARS.layers[index - 1];
-        SWEARS.layers[index] = prev;
-        SWEARS.layers[index - 1] = layer;
-        SWEARS.layer_buffer[layer.key]--;
-        SWEARS.layer_buffer[prev.key]++;
-      },
-      
-      // use a renderer to display stuff
-      // TODO: allow renderer choice
-      render: function() {
-        SWEARS.renderers.pre();
-      },
-      
-      // start the sequence
-      play: function(framerate, target, width, height, callback) {
-        SWEARS.target = target;
-        SWEARS.width = width;
-        SWEARS.height = height;
-        
-        if(!parseInt(framerate)) {return false;}
-        var micros = parseInt(1000 / parseInt(framerate));
-        micros = micros < 10 ? 10 : micros;
-        SWEARS.setIntervalId = setInterval(function() {
-          callback();
-          SWEARS.render();
-        }, micros);
-      },
-      
-      // freeze time
-      pause: function() {
-        clearInterval(SWEARS.setIntervalId);
-        delete(SWEARS.setIntervalId);
-      },
-      
-      // TODO: move these outside and make it extensible
-      renderers: {
-        pre: function() {
-          // pre-initialize composite array
-          var composite = [];
-          for(var y = 0; y < SWEARS.height; y++) {
-            composite[y] = [];
-            for(var x = 0; x < SWEARS.width; x++) {
-              composite[y][x] = false;
-            }
-          }
-          
-          // composite layers
-          for(var i = 0; i < SWEARS.layers.length; i++) {
-            // TODO: add z-indexing
-            for(var y = SWEARS.layers[i].data.length - 1; y >= 0; y--) {
-              for(var x = SWEARS.layers[i].data[y].length - 1; x >= 0; x--) {
-                if(SWEARS.layers[i].data[y][x] !== false) {
-                  var true_y = y + SWEARS.layers[i].y;
-                  var true_x = x + SWEARS.layers[i].x;
-                  if(true_x < 0 || true_x > SWEARS.width || true_y < 0 || true_y > SWEARS.height) {continue;}
-                  composite[true_y][true_x] = SWEARS.layers[i].data[y][x];
-                }
-              }
-            }
-          }
-          
-          // composite -> string
-          var string = '';
-          for(var y = 0; y < SWEARS.height; y++) {
-            for(var x = 0; x < SWEARS.width; x++) {
-              string += composite[y][x] !== false ? composite[y][x] : ' ';
-            }
-            string += "\n";
-          }
-          
-          // render in target
-          SWEARS.target.innerHTML = string;
-        }
-      } 
-      
-    };
-    
-    
-    
-    // game specific stuff
-    
-    
     
     // callback thing
     call_me = function() {
       // check the current ball position (4 = ball width - 1)
       // TODO: generalize layer collision and edge detection
       if(ball.y <= 0) {ball.vector[0] = Math.abs(ball.vector[0]);}
-      if(ball.y >= SWEARS.height - 4) {ball.vector[0] = -1 * Math.abs(ball.vector[0]);}
+      if(ball.y >= swearsly.height - 4) {ball.vector[0] = -1 * Math.abs(ball.vector[0]);}
       if(ball.x <= 0) {ball.vector[1] = Math.abs(ball.vector[1]);}
-      if(ball.x >= SWEARS.width - 4) {ball.vector[1] = -1 * Math.abs(ball.vector[1]);}
+      if(ball.x >= swearsly.width - 4) {ball.vector[1] = -1 * Math.abs(ball.vector[1]);}
       
       // change ball position
       ball.y += ball.vector[0];
       ball.x += ball.vector[1];
       
       // twiddle layer data
-      // TODO: do this through SWEARS instead of directly
+      // TODO: do this through swearsly instead of directly
       ball.layer.y = parseInt(ball.y);
       ball.layer.x = parseInt(ball.x);
       
@@ -155,16 +32,16 @@
       // check the current box position (4 = box width - 1)
       // TODO: generalize layer collision and edge detection
       if(box.y <= 0) {box.vector[0] = Math.abs(box.vector[0]);}
-      if(box.y >= SWEARS.height - 4) {box.vector[0] = -1 * Math.abs(box.vector[0]);}
+      if(box.y >= swearsly.height - 4) {box.vector[0] = -1 * Math.abs(box.vector[0]);}
       if(box.x <= 0) {box.vector[1] = Math.abs(box.vector[1]);}
-      if(box.x >= SWEARS.width - 4) {box.vector[1] = -1 * Math.abs(box.vector[1]);}
+      if(box.x >= swearsly.width - 4) {box.vector[1] = -1 * Math.abs(box.vector[1]);}
       
       // change box position
       box.y += box.vector[0];
       box.x += box.vector[1];
       
       // twiddle layer data
-      // TODO: do this through SWEARS instead of directly
+      // TODO: do this through swearsly instead of directly
       box.layer.y = parseInt(box.y);
       box.layer.x = parseInt(box.x);
     }
@@ -174,15 +51,15 @@
       // do setup
       if(typeof(ball) == 'undefined') {
         box = {vector: [1,0], string: " X \nXXX\n X ", y: 0, x: 5};
-        box.layer = SWEARS.add_layer();
+        box.layer = swearsly.add_layer();
         box.layer.data = [["O", "O", "O"], ["O", "O", "O"], ["O", "O", "O"]]; // TODO: string -> matrix translator
 
         ball = {vector: [0,1], string: " X \nXXX\n X ", y: 5, x: 0};
-        ball.layer = SWEARS.add_layer();
+        ball.layer = swearsly.add_layer();
         ball.layer.data = [[false, "X", false], ["X", "X", "X"], [false, "X", false]]; // TODO: string -> matrix translator
       }
       
-      SWEARS.play(5, document.getElementById('target'), 10, 10, call_me);
+      swearsly.play(20, document.getElementById('target'), 10, 10, call_me);
     }
     
     
@@ -201,14 +78,14 @@
       }
     };
     
-    
+    swearsly = new Swears();
   </script> 
   
   
   <a href="" onclick="do_stuff(); return false;">Play</a>
-  <a href="" onclick="SWEARS.pause(); return false;">Pause</a>
-  <a href="" onclick="SWEARS.layer_move_up(box.layer); return false;">Move box up</a>
-  <a href="" onclick="SWEARS.layer_move_down(box.layer); return false;">Move box down</a>
+  <a href="" onclick="swearsly.pause(); return false;">Pause</a>
+  <a href="" onclick="swearsly.layer_move_up(box.layer); return false;">Move box up</a>
+  <a href="" onclick="swearsly.layer_move_down(box.layer); return false;">Move box down</a>
   
   <div><pre id="target"></pre></div> 
   
